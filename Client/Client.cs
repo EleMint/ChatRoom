@@ -20,15 +20,25 @@ namespace Client
         }
         public void Send()
         {
-            string messageString = UI.GetInput();
-            byte[] message = Encoding.ASCII.GetBytes(messageString);
-            stream.Write(message, 0, message.Count());
+            while(true)
+            {
+                Task<string> messageString = Task.Run(() => UI.GetInput());
+                messageString.Wait();
+                Task<string>[] currentMessage = new Task<string>[] { messageString };
+                string currentStringMessage = currentMessage[0].Result;
+                byte[] message = Encoding.ASCII.GetBytes(currentStringMessage);
+                stream.Write(message, 0, message.Count());
+            }
         }
         public void Recieve()
         {
-            byte[] recievedMessage = new byte[256];
-            stream.Read(recievedMessage, 0, recievedMessage.Length);
-            UI.DisplayMessage(Encoding.ASCII.GetString(recievedMessage));
+            while(true)
+            {
+                byte[] recievedMessage = new byte[256];
+                Task incoming = Task.Run(() => stream.Read(recievedMessage, 0, recievedMessage.Length));
+                incoming.Wait();
+                UI.DisplayMessage(Encoding.ASCII.GetString(recievedMessage));
+            }
         }
     }
 }
